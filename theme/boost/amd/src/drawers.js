@@ -684,6 +684,11 @@ export default class Drawers {
      * @param {Number} displace
      */
     static displaceDrawers(displace) {
+        const currentFocus = document.activeElement;
+        const drawercontent = document.querySelectorAll(SELECTORS.DRAWERCONTENT);
+        if (Array.from(drawercontent)?.some(drawer => drawer.contains(currentFocus))) {
+            return;
+        }
         drawerMap.forEach(drawerInstance => {
             drawerInstance.displace(displace);
         });
@@ -779,6 +784,11 @@ const registerListeners = () => {
                 disableDrawerTooltips(drawerInstance.drawerNode);
                 if (drawerInstance.isOpen) {
                     if (drawerInstance.closeOnResize) {
+                        const currentFocus = document.activeElement;
+                        const drawercontent = document.querySelectorAll(SELECTORS.DRAWERCONTENT);
+                        if (Array.from(drawercontent)?.some(drawer => drawer.contains(currentFocus))) {
+                            return;
+                        }
                         drawerInstance.closeDrawer();
                     } else {
                         anyOpen = true;
@@ -798,6 +808,11 @@ const registerListeners = () => {
     };
 
     document.addEventListener('scroll', () => {
+        const currentFocus = document.activeElement;
+        const drawercontent = document.querySelectorAll(SELECTORS.DRAWERCONTENT);
+        if (Array.from(drawercontent)?.some(drawer => drawer.contains(currentFocus))) {
+            return;
+        }
         const body = document.querySelector('body');
         if (window.scrollY >= window.innerHeight) {
             body.classList.add(CLASSES.SCROLLED);
