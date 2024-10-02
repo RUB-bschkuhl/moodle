@@ -23,11 +23,11 @@
 import ModalBackdrop from 'core/modal_backdrop';
 import Templates from 'core/templates';
 import * as Aria from 'core/aria';
-import {dispatchEvent} from 'core/event_dispatcher';
-import {debounce} from 'core/utils';
-import {isSmall, isLarge} from 'core/pagehelpers';
+import { dispatchEvent } from 'core/event_dispatcher';
+import { debounce } from 'core/utils';
+import { isSmall, isLarge } from 'core/pagehelpers';
 import Pending from 'core/pending';
-import {setUserPreference} from 'core_user/repository';
+import { setUserPreference } from 'core_user/repository';
 // The jQuery module is only used for interacting with Boostrap 4. It can we removed when MDL-71979 is integrated.
 import jQuery from 'jquery';
 
@@ -82,19 +82,19 @@ const getDrawerZIndex = () => {
 const getBackdrop = () => {
     if (!backdropPromise) {
         backdropPromise = Templates.render('core/modal_backdrop', {})
-        .then(html => new ModalBackdrop(html))
-        .then(modalBackdrop => {
-            const drawerZindex = getDrawerZIndex();
-            if (drawerZindex) {
-                modalBackdrop.setZIndex(getDrawerZIndex() - 1);
-            }
-            modalBackdrop.getAttachmentPoint().get(0).addEventListener('click', e => {
-                e.preventDefault();
-                Drawers.closeAllDrawers();
-            });
-            return modalBackdrop;
-        })
-        .catch();
+            .then(html => new ModalBackdrop(html))
+            .then(modalBackdrop => {
+                const drawerZindex = getDrawerZIndex();
+                if (drawerZindex) {
+                    modalBackdrop.setZIndex(getDrawerZIndex() - 1);
+                }
+                modalBackdrop.getAttachmentPoint().get(0).addEventListener('click', e => {
+                    e.preventDefault();
+                    Drawers.closeAllDrawers();
+                });
+                return modalBackdrop;
+            })
+            .catch();
     }
     return backdropPromise;
 };
@@ -280,14 +280,14 @@ export default class Drawers {
         this.drawerNode = drawerNode;
 
         if (isSmall()) {
-            this.closeDrawer({focusOnOpenButton: false, updatePreferences: false});
+            this.closeDrawer({ focusOnOpenButton: false, updatePreferences: false });
         }
 
         if (this.drawerNode.classList.contains(CLASSES.SHOW)) {
-            this.openDrawer({focusOnCloseButton: false, setUserPref: false});
+            this.openDrawer({ focusOnCloseButton: false, setUserPref: false });
         } else if (this.drawerNode.dataset.forceopen == 1) {
             if (!isSmall()) {
-                this.openDrawer({focusOnCloseButton: false, setUserPref: false});
+                this.openDrawer({ focusOnCloseButton: false, setUserPref: false });
             }
         } else {
             Aria.hide(this.drawerNode);
@@ -416,7 +416,7 @@ export default class Drawers {
      * @param {boolean} [args.focusOnCloseButton=true] Whether to alter page focus when opening the drawer
      * @param {boolean} [args.setUserPref=true] Whether to store the opened drawer state as a user preference
      */
-    openDrawer({focusOnCloseButton = true, setUserPref = true} = {}) {
+    openDrawer({ focusOnCloseButton = true, setUserPref = true } = {}) {
 
         const pendingPromise = new Pending('theme_boost/drawers:open');
         const showEvent = this.dispatchEvent(Drawers.eventTypes.drawerShow, true);
@@ -460,7 +460,7 @@ export default class Drawers {
                 pageWrapper.style.overflow = 'hidden';
                 return backdrop;
             })
-            .catch();
+                .catch();
         }
 
         // Show close button and header content once the drawer is fully opened.
@@ -488,7 +488,7 @@ export default class Drawers {
      * @param {boolean} [args.focusOnOpenButton=true] Whether to alter page focus when opening the drawer
      * @param {boolean} [args.updatePreferences=true] Whether to update the user prewference
      */
-    closeDrawer({focusOnOpenButton = true, updatePreferences = true} = {}) {
+    closeDrawer({ focusOnOpenButton = true, updatePreferences = true } = {}) {
 
         const pendingPromise = new Pending('theme_boost/drawers:close');
 
@@ -531,7 +531,7 @@ export default class Drawers {
             }
             return backdrop;
         })
-        .catch();
+            .catch();
 
         // Move focus to the open drawer (or toggler) button once the drawer is hidden.
         let openButton = getDrawerOpenButton(this.drawerNode.id);
@@ -698,9 +698,9 @@ export default class Drawers {
 const setLastUsedToggle = (toggleButton) => {
     if (toggleButton.dataset.target) {
         document.querySelectorAll(`${SELECTORS.BUTTONS}[data-target="${toggleButton.dataset.target}"]`)
-        .forEach(btn => {
-            btn.dataset.lastused = false;
-        });
+            .forEach(btn => {
+                btn.dataset.lastused = false;
+            });
         toggleButton.dataset.lastused = true;
     }
 };
@@ -778,7 +778,10 @@ const registerListeners = () => {
             drawerMap.forEach(drawerInstance => {
                 disableDrawerTooltips(drawerInstance.drawerNode);
                 if (drawerInstance.isOpen) {
-                    if (drawerInstance.closeOnResize) {
+                    const currentFocus = document.activeElement;
+                    const drawerContent = drawerInstance.drawerNode.querySelector(SELECTORS.DRAWERCONTENT);
+                    const shouldClose = drawerInstance.closeOnResize && (!drawerContent || !drawerContent.contains(currentFocus));
+                    if (shouldClose) {
                         drawerInstance.closeDrawer();
                     } else {
                         anyOpen = true;
@@ -797,7 +800,14 @@ const registerListeners = () => {
         }
     };
 
+
     document.addEventListener('scroll', () => {
+        const currentFocus = document.activeElement;
+        const drawerContentElements = document.querySelectorAll(SELECTORS.DRAWERCONTENT);
+        // Check if the current focus is within any drawer content.
+        if (Array.from(drawerContentElements).some(drawer => drawer.contains(currentFocus))) {
+            return;
+        }
         const body = document.querySelector('body');
         if (window.scrollY >= window.innerHeight) {
             body.classList.add(CLASSES.SCROLLED);
@@ -813,7 +823,7 @@ const registerListeners = () => {
     document.addEventListener('focusin', preventOverlap);
     document.addEventListener('focusout', preventOverlap);
 
-    window.addEventListener('resize', debounce(closeOnResizeListener, 400, {pending: true}));
+    window.addEventListener('resize', debounce(closeOnResizeListener, 400, { pending: true }));
 };
 
 registerListeners();
